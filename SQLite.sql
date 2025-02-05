@@ -62,12 +62,16 @@ GROUP BY Month
 ORDER BY Month;
 
 -- 6. Top products contributing to revenue, by region
-SELECT Region, ProductName, 
-       SUM(TransactionAmount) AS TotalRevenue,
-       RANK() OVER (PARTITION BY Region ORDER BY SUM(TransactionAmount) DESC) AS RankByRegion
-FROM sales_data
-GROUP BY Region, ProductName
-HAVING RankByRegion <= 5
+WITH RankedProducts AS (
+    SELECT Region, ProductName,
+           SUM(TransactionAmount) AS TotalRevenue,
+           RANK() OVER (PARTITION BY Region ORDER BY SUM(TransactionAmount) DESC) AS RankByRegion
+    FROM sales_data
+    GROUP BY Region, ProductName
+)
+SELECT Region, ProductName, TotalRevenue, RankByRegion
+FROM RankedProducts
+WHERE RankByRegion <= 5
 ORDER BY Region, RankByRegion;
 
 -- 7. Monthly revenue trends for seasonality analysis
